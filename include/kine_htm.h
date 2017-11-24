@@ -20,6 +20,37 @@ namespace Trl{
 //static const double kForeArmLength	= 257.0;
 //static const double kHandArmLength	= 154.0;
 
+void CreateHTM(double jointRad, double alphaRad,
+	double armLength, double armOffset, Eigen::Matrix4d &ret){
+
+	double cos_t, sin_t, cos_a, sin_a;
+
+	cos_t = cos(jointRad);
+	sin_t = sin(jointRad);
+	cos_a = cos(alphaRad);
+	sin_a = sin(alphaRad);
+
+	ret(0,0) = cos_t;
+	ret(0,1) = -sin_t;
+	ret(0,2) = 0.0;
+	ret(0,3) = armOffset;
+
+	ret(1,0) = cos_a * sin_t;
+	ret(1,1) = cos_a * cos_t;
+	ret(1,2) = -sin_a;
+	ret(1,3) = -sin_a * armLength;
+
+	ret(2,0) = sin_a * sin_t;
+	ret(2,1) = sin_a * cos_t;
+	ret(2,2) = cos_a;
+	ret(2,3) = cos_a * armLength;
+
+	ret(3,0) = 0.0;
+	ret(3,1) = 0.0;
+	ret(3,2) = 0.0;
+	ret(3,3) = 1.0;
+}
+
 //homogeneous translation matrix
 class HTM{
 private:
@@ -96,44 +127,17 @@ void HTM::SetOffsetParam(Eigen::MatrixXd _offset){
 //	std::cout << "cals" << offset.cols() << std::endl;
 }
 
+
 //end effector 分でelemnumが1増える
 void HTM::CalcHTM(Eigen::MatrixXd &curJointRad){
 
 	for(int joint = 0; joint < linkNum; ++joint){
-		double cos_t, sin_t, cos_a, sin_a;
 
 		if(joint != elemNum){
-			cos_t = cos(curJointRad(joint));
-			sin_t = sin(curJointRad(joint));
-			cos_a = cos(alpha(joint));
-			sin_a = sin(alpha(joint));
+		CreateHTM(curJointRad(joint),alpha(joint),armLength(joint),offset(joint),om[joint]);
 		}else if(joint == elemNum){
-			cos_t = cos(0.0);
-			sin_t = sin(0.0);
-			cos_a = cos(alpha(0.0));
-			sin_a = sin(alpha(0.0));
+		CreateHTM(curJointRad(0.0),alpha(joint),armLength(joint),offset(joint),om[joint]);
 		}
-
-		om[joint](0,0) = cos_t;
-		om[joint](0,1) = -sin_t;
-		om[joint](0,2) = 0.0;
-		om[joint](0,3) = offset(joint,0);
-
-		om[joint](1,0) = cos_a * sin_t;
-		om[joint](1,1) = cos_a * cos_t;
-		om[joint](1,2) = -sin_a;
-		om[joint](1,3) = -sin_a * armLength(joint,0);
-
-		om[joint](2,0) = sin_a * sin_t;
-		om[joint](2,1) = sin_a * cos_t;
-		om[joint](2,2) = cos_a;
-		om[joint](2,3) = cos_a * armLength(joint,0);
-
-		om[joint](3,0) = 0.0;
-		om[joint](3,1) = 0.0;
-		om[joint](3,2) = 0.0;
-		om[joint](3,3) = 1.0;
-
 	}
 
 	for(int i = 0; i < linkNum; ++i){

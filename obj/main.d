@@ -1,4 +1,4 @@
-obj/main.o: src/main.cpp include/kine_gravityCompensation.h \
+obj/main.o: src/main.cpp include/kine_centerOfGravity.h \
  include/Eigen/Core include/Eigen/src/Core/util/DisableStupidWarnings.h \
  include/Eigen/src/Core/util/Macros.h \
  include/Eigen/src/Core/util/MKL_support.h \
@@ -120,9 +120,9 @@ obj/main.o: src/main.cpp include/kine_gravityCompensation.h \
  include/Eigen/src/Geometry/Umeyama.h include/kine_htm.h \
  include/Eigen/StdVector include/Eigen/src/StlSupport/StdVector.h \
  include/Eigen/src/StlSupport/details.h include/kine_config.h \
- include/kine_config.h
+ include/kine_config.h include/kine_htm.h
 
-include/kine_gravityCompensation.h:
+include/kine_centerOfGravity.h:
 
 include/Eigen/Core:
 
@@ -437,3 +437,5 @@ include/Eigen/src/StlSupport/details.h:
 include/kine_config.h:
 
 include/kine_config.h:
+
+include/kine_htm.h:
