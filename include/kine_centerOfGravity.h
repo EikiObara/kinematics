@@ -1,25 +1,16 @@
+//2017/11/24
+//auther : eiki obara
+
 #include <iostream>
 
 #include "Eigen/Core"
 #include "Eigen/Geometry"
 
 #include "kine_htm.h"
-//#include "kine_coords.h"
-#include "kine_config.h"
+#include "kine_defines.h"
+#include "kine_robot_param.h"
 
 namespace Trl{
-
-enum FromCoGTypeT{
-	shoulder = 0,	//リンクの集約点に依存
-	elbow = 2,
-	wrist = 5
-};
-
-enum ToCoGTypeT{
-	upper = 1,	//リンクパラメータに依存
-	forward = 3,	//求めたい重心があるリンクがのびる関節を設定
-	hand = 6
-};
 
 class ArmCoG : private HTM{
 private:
@@ -30,7 +21,7 @@ private:
 	LinkT offset;
 	LinkT distortion;
 
-	bool GetCoGParam(FromCoGTypeT fromType, ToCoGTypeT toType, Eigen::Vector4d &ret);
+	bool GetCoGParam(JointNameT fromType, CoGNameT toType, Eigen::Vector4d &ret);
 public:
 	ArmCoG(double maxJoint);
 
@@ -38,7 +29,7 @@ public:
 	void SetLength(const Eigen::Vector3d &length);
 	void SetWeight(const Eigen::Vector3d &weight);
 
-	bool Get(FromCoGTypeT fromType,ToCoGTypeT toType, JointT &curJointRad, CoGT &cog);
+	bool Get(JointNameT fromType,CoGNameT toType, JointT &curJointRad, CoGT &cog);
 };
 
 ArmCoG::ArmCoG(double maxJoint) : HTM(maxJoint){}
@@ -61,68 +52,60 @@ void ArmCoG::SetWeight(const Eigen::Vector3d &weight){
 	cogWeight = weight;
 }
 
-bool ArmCoG::Get(FromCoGTypeT fromType, ToCoGTypeT toType, JointT &curJointRad, CoGT &cog){
-	RotMatT bufRot;
+bool ArmCoG::Get(JointNameT fromType, CoGNameT toType, JointT &curJointRad, CoGT &cog){
+	HtmT bufHtm;
 
 	HTM::CalcHTM(curJointRad);
-
-	HTM::GetHTMAll();
+//	HTM::GetHTMAll();
 
 	//for(int i = 0; i < (int)htm.size(); ++i) std::cout << "htm\n" << htm[i] << std::endl;
-
 	//重心がほしいリンクの一つ手前までのｈｔｍをもらう
-	HTM::GetHTM(0,toType,bufRot);
-
+	HTM::GetHTM(0,toType,bufHtm);
 	Eigen::Vector4d cogParam = Eigen::Vector4d::Zero();
-
 	if(GetCoGParam(fromType,toType,cogParam) == false){
 		cog = CoGT::Zero();
 		return false;
 	}
 
-	std::cout << "bufRot\n" << bufRot << std::endl;
+//	std::cout << "bufHtm\n" << bufRot << std::endl;
+//	std::cout << "cogParam\n" << cogParam << std::endl;
 
-	std::cout << "cogParam\n" << cogParam << std::endl;
+	Eigen::Vector4d bufCog = bufHtm * cogParam;
 
-	Eigen::Vector4d bufCog = bufRot * cogParam;
-
-	std::cout << "cog\n" << bufCog << std::endl;
-
-	if(fromType == elbow || fromType == wrist){
+	if(fromType == ELBOW || fromType == WRIST){
 		GetHTMAll();
 		Eigen::Vector4d jointOffset = Eigen::Vector4d::Zero();
 		for(int i = 0; i < 3; ++i) jointOffset(i) = HTM::htm[fromType](i,3);
-
-		std::cout << "elbow\n" << jointOffset << std::endl;
-
 		bufCog = bufCog - jointOffset;
 	}
 
+	//返り値は、要素３のベクトルに直す。外積やらで要素３である必要があるから。
 	for(int i = 0, n = 3; i < n; ++i) cog(i,0) = bufCog(i,0);
 
+	//std::cout << "cog\n" << cog << std::endl;
 
 	return true;
 }
 
-bool ArmCoG::GetCoGParam(FromCoGTypeT fromType,ToCoGTypeT toType, Eigen::Vector4d &ret){
+bool ArmCoG::GetCoGParam(JointNameT fromType,CoGNameT toType, Eigen::Vector4d &ret){
 	int typeBuffer = -1;
 
-	if(fromType == shoulder){
-		if(toType == upper){
+	if(fromType == SHOULDER){
+		if(toType == UPPER){
 			typeBuffer = 0;
-		}else if(toType == forward){
+		}else if(toType == FORWARD){
 			typeBuffer = 1;
-		}else if(toType == hand){
+		}else if(toType == HAND){
 			typeBuffer = 2;
 		}
-	}else if(fromType == elbow){
-		if(toType == forward){
+	}else if(fromType == ELBOW){
+		if(toType == FORWARD){
 			typeBuffer = 1;
-		}else if(toType == hand){
+		}else if(toType == HAND){
 			typeBuffer = 2;
 		}
-	}else if(fromType == wrist){
-		if(toType == hand){
+	}else if(fromType == WRIST){
+		if(toType == HAND){
 			typeBuffer = 2;
 		}
 	}
