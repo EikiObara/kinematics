@@ -12,7 +12,7 @@ typedef Eigen::MatrixXd JointT;
 
 typedef Eigen::MatrixXd JointVelT;
 
-typedef Eigen::Vector3d TolqueT;
+typedef Eigen::Vector3d TorqueT;
 
 typedef Eigen::Matrix3d RotMatT;
 

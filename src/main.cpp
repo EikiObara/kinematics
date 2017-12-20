@@ -1,7 +1,7 @@
 #include <iostream>
 #include <cmath>
 
-#include "kine_jointTolque.h"
+#include "kine_gravity_compensation.h"
 
 Eigen::Vector4d Vector3d24d(Eigen::Vector3d &buf){
 	Eigen::Vector4d ret;
@@ -19,30 +19,24 @@ Eigen::Vector3d Vector4d23d(Eigen::Vector4d &buf){
 }
 
 void SetJointRad(Trl::JointT &curJointRad){
-	curJointRad(0,0) = (90-90) * M_PI / 180;
+	curJointRad(0,0) = (-90) * M_PI / 180;
 	curJointRad(1,0) = (90) * M_PI / 180;
 	curJointRad(2,0) = (90) * M_PI / 180;
-	curJointRad(3,0) = 0 * M_PI / 180;
-	curJointRad(4,0) = 0;
+	curJointRad(3,0) = 90 * M_PI / 180;
+	curJointRad(4,0) = 0 * M_PI / 180;
 	curJointRad(5,0) = -90 * M_PI / 180;
 	curJointRad(6,0) = 0;
 }
 
 //test cord for kine_jointTolque.h
 int main(){
-	Trl::TolqueT tolq = Trl::TolqueT::Zero();
+	Trl::TorqueT torq = Trl::TorqueT::Zero();
 	Trl::JointT curJointRad = Trl::JointT(Trl::kMaxJoint,1);
+
+	Trl::GravityTorque(7);
 
 	SetJointRad(curJointRad);
 
-	GetGravityTolque(Trl::SHOULDER,curJointRad,tolq);
-	std::cout << tolq << std::endl;
-
-	GetGravityTolque(Trl::ELBOW,curJointRad,tolq);
-	std::cout << tolq << std::endl;
-
-	GetGravityTolque(Trl::WRIST,curJointRad,tolq);
-	std::cout << tolq << std::endl;
 
 
 	return 0;

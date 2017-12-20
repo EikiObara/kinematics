@@ -12,7 +12,7 @@
 
 namespace Trl{
 
-class ArmCoG : private HTM{
+class ArmCoG : protected HTM{
 private:
 	Eigen::Vector3d cogLength;	//center of gravity length
 	Eigen::Vector3d cogWeight;
@@ -23,16 +23,16 @@ private:
 
 	bool GetCoGParam(JointNameT fromType, CoGNameT toType, Eigen::Vector4d &ret);
 public:
-	ArmCoG(double maxJoint);
+	ArmCoG(int maxJoint);
 
 	void SetLinkParam(const LinkT armLength, const LinkT offset, const LinkT distortion);
-	void SetLength(const Eigen::Vector3d &length);
-	void SetWeight(const Eigen::Vector3d &weight);
+	void SetLength(const CoGT &length);
+	void SetWeight(const CoGT &weight);
 
 	bool Get(JointNameT fromType,CoGNameT toType, JointT &curJointRad, CoGT &cog);
 };
 
-ArmCoG::ArmCoG(double maxJoint) : HTM(maxJoint){}
+ArmCoG::ArmCoG(int maxJoint) : HTM(maxJoint){}
 
 void ArmCoG::SetLinkParam(const LinkT armLength, const LinkT offset, const LinkT distortion){
 	SetArmLength(armLength);
