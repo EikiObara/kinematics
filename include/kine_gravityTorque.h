@@ -5,6 +5,8 @@
 #define __KINE_GRAVITY_COMPENSATION_H__
 
 #include "kine_centerOfGravity.h"
+#include "kine_defines.h"
+#include "kine_consts.h"
 
 namespace Trl{
 
@@ -12,48 +14,54 @@ class GravityTorque{
 private:
 	ArmCoG armcogObj;
 
+	CoGT weight;
+
 	void GetArmTorque(JointNameT jointName,HTM htmObj,TorqueT &ret);
 public:
-	void SetCoGParam(CoGT length,CoGT weight);
+	void SetCoGParam(CoGT _length, CoGT _weight);
 
 	void GetJointTorque(const int jointNum,HTM htmObj,JointT jointRad,TorqueT &ret);
-
 };
 
-void GravityTorque::SetCoGParam(CoGT length,CoGT weight){
-	armcogObj.SetCoGParam(length,weight);
+void GravityTorque::SetCoGParam(CoGT _length,CoGT _weight){
+	armcogObj.SetCoGLength(_length);
+	weight = _weight;
+
 }
 
 void GravityTorque::GetArmTorque(JointNameT jointName,HTM htmObj,TorqueT &torq){
-	torq=TorqueT::Zero();
+	torq = TorqueT::Zero();
 
 	CoGT bufCog = CoGT::Zero();
 
 	switch(jointName){
 	case SHOULDER:
 		armcogObj.Get(SHOULDER,UPPER,htmObj,bufCog);
-		torq += bufCog.cross(kLinkWeight(0)*kGravityAccel);	//0=upperWeight
+		torq += bufCog.cross(weight(0)*kGravityAccel);	//0=upperWeight
 		armcogObj.Get(SHOULDER,FORWARD,htmObj,bufCog);
-		torq += bufCog.cross(kLinkWeight(1)*kGravityAccel);	//1=foreWeight
+		torq += bufCog.cross(weight(1)*kGravityAccel);	//1=foreWeight
 		armcogObj.Get(SHOULDER,HAND,htmObj,bufCog);
-		torq += bufCog.cross(kLinkWeight(2)*kGravityAccel);	//2=handWeight
+		torq += bufCog.cross(weight(2)*kGravityAccel);	//2=handWeight
 
 		break;
 	case ELBOW:
 		armcogObj.Get(ELBOW,FORWARD,htmObj,bufCog);
-		torq += bufCog.cross(kLinkWeight(1)*kGravityAccel);	//1=foreWeight
+		torq += bufCog.cross(weight(1)*kGravityAccel);	//1=foreWeight
 		armcogObj.Get(ELBOW,HAND,htmObj,bufCog);
-		torq += bufCog.cross(kLinkWeight(2)*kGravityAccel);	//2=handWeight
+		torq += bufCog.cross(weight(2)*kGravityAccel);	//2=handWeight
 	
 		break;
 	case WRIST:
 		armcogObj.Get(WRIST,HAND,htmObj,bufCog);
-		torq += bufCog.cross(kLinkWeight(2)*kGravityAccel);	//2=handWeight
+		torq += bufCog.cross(weight(2)*kGravityAccel);	//2=handWeight
 
 		break;
 	default:
 		break;
 	}
+
+	//std::cout << "weight\n" << weight << std::endl;
+	//std::cout << "torq\n" << torq << std::endl;
 
 	for(int i = 0;i < torq.rows(); ++i){
 		if(fabs(torq(i)) < 1.0e-8){
@@ -80,14 +88,14 @@ void GravityTorque::GetJointTorque(const int jointNum,HTM htmObj,JointT jointRad
 		break;
 	case 3:
 		GetArmTorque(ELBOW,htmObj,torqBuf);
-		htmObj.GetHTM(4,jointNum,retHtm);
+		htmObj.GetHTM(0,jointNum,retHtm);
 
 		break;
 	case 4:
 	case 5:
 	case 6:
 		GetArmTorque(WRIST,htmObj,torqBuf);
-		htmObj.GetHTM(4,jointNum,retHtm);
+		htmObj.GetHTM(0,jointNum,retHtm);
 
 		break;
 	default:

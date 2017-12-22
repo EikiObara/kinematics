@@ -16,6 +16,8 @@ const int kMaxLink = 8;
 //typedef
 typedef Eigen::Matrix<double,kMaxLink,1> LinkT;
 
+typedef Eigen::Matrix<double,kMaxLink,1> PulleyT;
+
 namespace CHRConfig{
 //-----arm length parameter-----
 
@@ -31,7 +33,7 @@ const double kAlpha[kMaxLink]= {0.0,-M_PI/2,M_PI/2,-M_PI/2,M_PI/2,-M_PI/2,M_PI/2
 //-----CoG length from center of joint-----
 const double CoG_UPPER		= 33.89;	//[mm]
 const double CoG_FORWARD	= 142.23;	//[mm]
-const double CoG_HAND		= 22.3;	//[mm]
+const double CoG_HAND		= 22.3;		//[mm]
 const double kCoGLen[3] = {CoG_UPPER,CoG_FORWARD,CoG_HAND};
 
 //-----  WEIGHT param. -----
@@ -40,24 +42,24 @@ const double WEIGHT_FORWARD	= 0.56333;	//kg
 const double WEIGHT_HAND	= 0.268;	//kg
 const double kWeight[3] = {WEIGHT_UPPER,WEIGHT_FORWARD,WEIGHT_HAND};
 
-const double gravityAcceleration = 9806.65;	//mm/s^2
-const double kGravAccel[3] = {0,-gravityAcceleration, 0};
+//pulley radius
+const double kPulleyRadius[kMaxLink] = {48.5, 31, 31, 21, 19.5, 13, 13.5, 0};
 
 }	//namespace CHRConfig
 
 //----- constant numbers converted eigen type -----
 
-const LinkT kArmLength(CHRConfig::kArmLen);
+LinkT kArmLength(CHRConfig::kArmLen);
 
-const LinkT kOffsetLength(CHRConfig::kOffsetLen);
+LinkT kOffsetLength(CHRConfig::kOffsetLen);
 
-const LinkT kAlphaRad(CHRConfig::kAlpha);
+LinkT kAlphaRad(CHRConfig::kAlpha);
 
-const Eigen::Vector3d kCoGLength(CHRConfig::kCoGLen);
+Eigen::Vector3d kCoGLength(CHRConfig::kCoGLen);
 
-const Eigen::Vector3d kLinkWeight(CHRConfig::kWeight);
+Eigen::Vector3d kLinkWeight(CHRConfig::kWeight);
 
-const Eigen::Vector3d kGravityAccel(CHRConfig::kGravAccel);
+PulleyT kPulleyRadius(CHRConfig::kPulleyRadius);
 
 }	//namespace Trl
 

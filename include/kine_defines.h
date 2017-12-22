@@ -7,28 +7,28 @@
 #include "Eigen/Core"
 
 namespace Trl {
-//-----Over all-----
+
 typedef Eigen::MatrixXd JointT;
 
+//Joint velocity
 typedef Eigen::MatrixXd JointVelT;
+
+//position
+typedef Eigen::Vector3d PosT;
+
+//rotation matrix
+typedef Eigen::Matrix3d RotMatT;
+
+//hmogeneous translate matrix
+typedef Eigen::Matrix4d HtmT;
+
+//center of gravity
+typedef Eigen::Vector3d CoGT;
 
 typedef Eigen::Vector3d TorqueT;
 
-typedef Eigen::Matrix3d RotMatT;
 
-typedef Eigen::Matrix4d HtmT;
-
-typedef Eigen::Vector3d CoGT;
-
-typedef Eigen::Vector3d PosT;
-
-//-----Spline-----
-const int ROUTE_POINTS = 3;
-
-const int ROUTE_LINK = ROUTE_POINTS - 1;	// link number is defined by nodes. (there is one link between two nodes, so maxLinkVal = maxNodeVal - 1)
-
-const double VIA_LENGTH = 50;		//it uses for CalcViaPos in kine_trajectory.h ... however, it will need not to use. 
-
+//name define with enum
 enum JointNameT{
 	SHOULDER = 0,	//depend to consentration point of robot arm link.
 	ELBOW = 2,

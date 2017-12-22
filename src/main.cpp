@@ -1,7 +1,8 @@
 #include <iostream>
 #include <cmath>
 
-#include "kine_gravityTorque.h"
+#include "kine_wireTension.h"
+
 #include "kine_defines.h"
 #include "kine_robot_param.h"
 
@@ -21,13 +22,13 @@ Eigen::Vector3d Vector4d23d(Eigen::Vector4d &buf){
 }
 
 void SetJointRad(Trl::JointT &curJointRad){
-	curJointRad(0,0) = (45-90) * M_PI / 180;
-	curJointRad(1,0) = (0+90) * M_PI / 180;
-	curJointRad(2,0) = (0+90) * M_PI / 180;
+	curJointRad(0,0) = (-90) * M_PI / 180;
+	curJointRad(1,0) = (90) * M_PI / 180;
+	curJointRad(2,0) = (90) * M_PI / 180;
 	curJointRad(3,0) = 0 * M_PI / 180;
 	curJointRad(4,0) = 0 * M_PI / 180;
-	curJointRad(5,0) = -0 * M_PI / 180;
-	curJointRad(6,0) = 0;
+	curJointRad(5,0) = 0 * M_PI / 180;
+	curJointRad(6,0) = 0 * M_PI / 180;
 }
 
 //test cord for kine_jointTolque.h
@@ -40,16 +41,19 @@ int main(){
 
 	htmObj.SetLinkParam(Trl::kArmLength,Trl::kOffsetLength,Trl::kAlphaRad);
 
-	Trl::GravityTorque gt;
+	Trl::WireTension wt;
 
-	gt.SetCoGParam(Trl::kCoGLength,Trl::kLinkWeight);
-	
-	Trl::TorqueT ret;
+	wt.SetCoGParam(Trl::kCoGLength,Trl::kLinkWeight);
 
-	for(int i = 0; i < 7; ++i){
-		gt.GetJointTorque(i,htmObj,curJointRad,ret);
-		std::cout << "ret\n"  << ret << std::endl;
+	wt.SetPulleyParam(Trl::kPulleyRadius);
+
+	double ret = 0;
+
+	for(int i = 0; i < Trl::kMaxJoint; ++i){
+		wt.Get(i,htmObj,curJointRad,ret);
+		std::cout << i <<  "->" << ret << std::endl;
 	}
+
 
 	return 0;
 }	

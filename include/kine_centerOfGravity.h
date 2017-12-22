@@ -1,6 +1,9 @@
 //2017/11/24
 //auther : eiki obara
 
+#ifndef __KINE_CENTER_OF_GRAVITY_H__
+#define __KINE_CENTER_OF_GRAVITY_H__
+
 #include <iostream>
 
 #include "Eigen/Core"
@@ -8,7 +11,6 @@
 
 #include "kine_htm.h"
 #include "kine_defines.h"
-#include "kine_robot_param.h"
 
 namespace Trl{
 
@@ -19,16 +21,13 @@ private:
 
 	bool GetCoGVecParam(JointNameT fromType,CoGNameT toType,HTM htmObj,Eigen::Vector4d &ret);
 public:
-	void SetCoGParam(CoGT length,CoGT weight);
+	void SetCoGLength(CoGT length);
 
 	bool Get(JointNameT fromType,CoGNameT toType,HTM htmObj,CoGT &cog);
 };
 
-void ArmCoG::SetCoGParam(CoGT length,CoGT weight){
+void ArmCoG::SetCoGLength(CoGT length){
 	cogLength = length;
-	//std::cout << "length\n" << cogLength << std::endl;
-	cogWeight = weight;
-	//std::cout << "weight\n" << cogWeight << std::endl;
 }
 
 bool ArmCoG::Get(JointNameT fromType,CoGNameT toType,HTM htmObj,CoGT &cog){
@@ -66,6 +65,7 @@ bool ArmCoG::Get(JointNameT fromType,CoGNameT toType,HTM htmObj,CoGT &cog){
 	return true;
 }
 
+//リンクによって変わる重心のパラメータを算出
 bool ArmCoG::GetCoGVecParam(JointNameT fromType,CoGNameT toType,HTM htmObj,Eigen::Vector4d &ret){
 	int typeBuffer = -1;
 
@@ -112,3 +112,5 @@ bool ArmCoG::GetCoGVecParam(JointNameT fromType,CoGNameT toType,HTM htmObj,Eigen
 }
 
 }	//namespace Trl
+
+#endif //__KINE_CENTER_OF_GRAVITY_H__
