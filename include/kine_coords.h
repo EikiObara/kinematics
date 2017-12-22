@@ -5,7 +5,6 @@
 #include "kine_htm.h"
 #include "kine_defines.h"
 
-
 namespace Trl{
 
 class Coords{

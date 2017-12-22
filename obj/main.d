@@ -1,6 +1,7 @@
-obj/main.o: src/main.cpp include/kine_wireTension.h \
- include/kine_gravityTorque.h include/kine_centerOfGravity.h \
- include/Eigen/Core include/Eigen/src/Core/util/DisableStupidWarnings.h \
+obj/main.o: src/main.cpp include/kine_wireElongation.h \
+ include/kine_wireTension.h include/kine_gravityTorque.h \
+ include/kine_centerOfGravity.h include/Eigen/Core \
+ include/Eigen/src/Core/util/DisableStupidWarnings.h \
  include/Eigen/src/Core/util/Macros.h \
  include/Eigen/src/Core/util/MKL_support.h \
  include/Eigen/src/Core/util/Constants.h \
@@ -121,7 +122,10 @@ obj/main.o: src/main.cpp include/kine_wireTension.h \
  include/Eigen/src/Geometry/Umeyama.h include/kine_htm.h \
  include/Eigen/StdVector include/Eigen/src/StlSupport/StdVector.h \
  include/Eigen/src/StlSupport/details.h include/kine_defines.h \
- include/kine_consts.h include/kine_defines.h include/kine_robot_param.h
+ include/kine_math_consts.h include/kine_defines.h \
+ include/kine_robot_param.h
+
+include/kine_wireElongation.h:
 
 include/kine_wireTension.h:
 
@@ -441,7 +445,7 @@ include/Eigen/src/StlSupport/details.h:
 
 include/kine_defines.h:
 
-include/kine_consts.h:
+include/kine_math_consts.h:
 
 include/kine_defines.h:
 

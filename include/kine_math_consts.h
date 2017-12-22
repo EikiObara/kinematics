@@ -6,6 +6,8 @@
 
 #include "Eigen/Core"
 
+namespace Trl{
+
 //spline
 const int ROUTE_POINTS = 3;
 
@@ -18,11 +20,20 @@ const int ROUTE_LINK = ROUTE_POINTS - 1;
 const double VIA_LENGTH = 50.0;
 
 //dynamic constants
-const double gravityAcceleration = 9806.65;	//mm/s^2
+const double kGravityAcceleration = 9806.65;	//mm/s^2
 
-const double kGravAccel[3] = {0, -gravityAcceleration, 0};
+const double kGravAccel[3] = {0, -kGravityAcceleration, 0};
 
 Eigen::Vector3d kGravityAccel(kGravAccel);
+
+const double kThickSpringConst = 100;
+const double kThinSpringConst = 50;
+
+const double kSpring[2] = {kThickSpringConst,kThinSpringConst};
+
+Eigen::Vector2d kSpringConst(kSpring);
+
+}	//namespace Trl
 
 #endif //__KINE_CONSTS_H__
 

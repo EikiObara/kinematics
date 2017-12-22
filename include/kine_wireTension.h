@@ -6,10 +6,6 @@
 
 #include "kine_gravityTorque.h"
 
-//トルクをもらう
-//トルクのZ軸成分だけ抽出
-//トルクをプーリ半径で割る
-
 namespace Trl{
 
 class WireTension{
@@ -36,12 +32,13 @@ void WireTension::SetPulleyParam(Eigen::MatrixXd pulley){
 void WireTension::Get(int jointNum, HTM htmObj,JointT jointRad, double &ret){
 	TorqueT retTorq = TorqueT::Zero();
 
+	//関節にかかるトルクを算出
 	gt.GetJointTorque(jointNum,htmObj,jointRad,retTorq);
 
 	//std::cout << "pulley\n" << pulley(jointNum) << std::endl;
 	//std::cout << "retTorq\n" << retTorq << std::endl;
 
-	//z軸成分のみがロボットの関節角度に影響を及ぼす。
+	//z軸成分のみがロボットの関節角度に影響を及ぼすため、ｚ成分（要素２）を長さで割る
 	ret = retTorq(2) / pulley(jointNum);
 }
 

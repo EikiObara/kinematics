@@ -6,7 +6,7 @@
 
 #include "kine_centerOfGravity.h"
 #include "kine_defines.h"
-#include "kine_consts.h"
+#include "kine_math_consts.h"
 
 namespace Trl{
 
