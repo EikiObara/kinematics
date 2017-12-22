@@ -1,7 +1,9 @@
 #include <iostream>
 #include <cmath>
 
-#include "kine_gravity_compensation.h"
+#include "kine_gravityTorque.h"
+#include "kine_defines.h"
+#include "kine_robot_param.h"
 
 Eigen::Vector4d Vector3d24d(Eigen::Vector3d &buf){
 	Eigen::Vector4d ret;
@@ -19,25 +21,35 @@ Eigen::Vector3d Vector4d23d(Eigen::Vector4d &buf){
 }
 
 void SetJointRad(Trl::JointT &curJointRad){
-	curJointRad(0,0) = (-90) * M_PI / 180;
-	curJointRad(1,0) = (90) * M_PI / 180;
-	curJointRad(2,0) = (90) * M_PI / 180;
-	curJointRad(3,0) = 90 * M_PI / 180;
+	curJointRad(0,0) = (45-90) * M_PI / 180;
+	curJointRad(1,0) = (0+90) * M_PI / 180;
+	curJointRad(2,0) = (0+90) * M_PI / 180;
+	curJointRad(3,0) = 0 * M_PI / 180;
 	curJointRad(4,0) = 0 * M_PI / 180;
-	curJointRad(5,0) = -90 * M_PI / 180;
+	curJointRad(5,0) = -0 * M_PI / 180;
 	curJointRad(6,0) = 0;
 }
 
 //test cord for kine_jointTolque.h
 int main(){
-	Trl::TorqueT torq = Trl::TorqueT::Zero();
+
 	Trl::JointT curJointRad = Trl::JointT(Trl::kMaxJoint,1);
-
-	Trl::GravityTorque(7);
-
 	SetJointRad(curJointRad);
 
+	Trl::HTM htmObj(Trl::kMaxJoint);
 
+	htmObj.SetLinkParam(Trl::kArmLength,Trl::kOffsetLength,Trl::kAlphaRad);
+
+	Trl::GravityTorque gt;
+
+	gt.SetCoGParam(Trl::kCoGLength,Trl::kLinkWeight);
+	
+	Trl::TorqueT ret;
+
+	for(int i = 0; i < 7; ++i){
+		gt.GetJointTorque(i,htmObj,curJointRad,ret);
+		std::cout << "ret\n"  << ret << std::endl;
+	}
 
 	return 0;
 }	

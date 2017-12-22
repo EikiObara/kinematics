@@ -1,4 +1,4 @@
-obj/main.o: src/main.cpp include/kine_gravity_compensation.h \
+obj/main.o: src/main.cpp include/kine_gravityTorque.h \
  include/kine_centerOfGravity.h include/Eigen/Core \
  include/Eigen/src/Core/util/DisableStupidWarnings.h \
  include/Eigen/src/Core/util/Macros.h \
@@ -121,9 +121,10 @@ obj/main.o: src/main.cpp include/kine_gravity_compensation.h \
  include/Eigen/src/Geometry/Umeyama.h include/kine_htm.h \
  include/Eigen/StdVector include/Eigen/src/StlSupport/StdVector.h \
  include/Eigen/src/StlSupport/details.h include/kine_defines.h \
+ include/kine_robot_param.h include/kine_defines.h \
  include/kine_robot_param.h
 
-include/kine_gravity_compensation.h:
+include/kine_gravityTorque.h:
 
 include/kine_centerOfGravity.h:
 
@@ -436,6 +437,10 @@ include/Eigen/StdVector:
 include/Eigen/src/StlSupport/StdVector.h:
 
 include/Eigen/src/StlSupport/details.h:
+
+include/kine_defines.h:
+
+include/kine_robot_param.h:
 
 include/kine_defines.h:
 

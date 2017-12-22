@@ -12,82 +12,61 @@
 
 namespace Trl{
 
-class ArmCoG : protected HTM{
+class ArmCoG{
 private:
 	Eigen::Vector3d cogLength;	//center of gravity length
 	Eigen::Vector3d cogWeight;
 
-	LinkT armLength;
-	LinkT offset;
-	LinkT distortion;
-
-	bool GetCoGParam(JointNameT fromType, CoGNameT toType, Eigen::Vector4d &ret);
+	bool GetCoGVecParam(JointNameT fromType,CoGNameT toType,HTM htmObj,Eigen::Vector4d &ret);
 public:
-	ArmCoG(int maxJoint);
+	void SetCoGParam(CoGT length,CoGT weight);
 
-	void SetLinkParam(const LinkT armLength, const LinkT offset, const LinkT distortion);
-	void SetLength(const CoGT &length);
-	void SetWeight(const CoGT &weight);
-
-	bool Get(JointNameT fromType,CoGNameT toType, JointT &curJointRad, CoGT &cog);
+	bool Get(JointNameT fromType,CoGNameT toType,HTM htmObj,CoGT &cog);
 };
 
-ArmCoG::ArmCoG(int maxJoint) : HTM(maxJoint){}
-
-void ArmCoG::SetLinkParam(const LinkT armLength, const LinkT offset, const LinkT distortion){
-	SetArmLength(armLength);
-	SetOffsetParam(offset);
-	SetAlphaParam(distortion);
-
-	this->armLength = armLength;
-	this->offset = offset;
-	this->distortion = distortion;
-}
-
-void ArmCoG::SetLength(const Eigen::Vector3d &length){
+void ArmCoG::SetCoGParam(CoGT length,CoGT weight){
 	cogLength = length;
-}
-
-void ArmCoG::SetWeight(const Eigen::Vector3d &weight){
+	//std::cout << "length\n" << cogLength << std::endl;
 	cogWeight = weight;
+	//std::cout << "weight\n" << cogWeight << std::endl;
 }
 
-bool ArmCoG::Get(JointNameT fromType, CoGNameT toType, JointT &curJointRad, CoGT &cog){
-	HtmT bufHtm;
+bool ArmCoG::Get(JointNameT fromType,CoGNameT toType,HTM htmObj,CoGT &cog){
+	//肩原点から重心がほしいリンクの一つ手前までのｈｔｍをもらう
+	HtmT bufHtm = HtmT::Zero();
+	htmObj.GetHTM(0,toType,bufHtm);
 
-	HTM::CalcHTM(curJointRad);
-//	HTM::GetHTMAll();
-
-	//for(int i = 0; i < (int)htm.size(); ++i) std::cout << "htm\n" << htm[i] << std::endl;
-	//重心がほしいリンクの一つ手前までのｈｔｍをもらう
-	HTM::GetHTM(0,toType,bufHtm);
+	//重心のパラメータをもつベクトルを生成する
 	Eigen::Vector4d cogParam = Eigen::Vector4d::Zero();
-	if(GetCoGParam(fromType,toType,cogParam) == false){
+
+	if(GetCoGVecParam(fromType,toType,htmObj,cogParam) == false){
 		cog = CoGT::Zero();
 		return false;
 	}
 
-//	std::cout << "bufHtm\n" << bufRot << std::endl;
-//	std::cout << "cogParam\n" << cogParam << std::endl;
+	//std::cout << "bufHtm\n" << bufHtm << std::endl;
+	//std::cout << "cogParam\n" << cogParam << std::endl;
 
+	//肩原点からの重心位置ベクトルを生成
 	Eigen::Vector4d bufCog = bufHtm * cogParam;
 
+	//肘、手首を始点にした場合
 	if(fromType == ELBOW || fromType == WRIST){
-		GetHTMAll();
+		htmObj.GetHTMAll();
 		Eigen::Vector4d jointOffset = Eigen::Vector4d::Zero();
-		for(int i = 0; i < 3; ++i) jointOffset(i) = HTM::htm[fromType](i,3);
+		for(int i = 0; i < 3; ++i) jointOffset(i) = htmObj.htm[fromType](i,3);
 		bufCog = bufCog - jointOffset;
 	}
+
+	//std::cout << "bufCog\n" << bufCog << std::endl;
 
 	//返り値は、要素３のベクトルに直す。外積やらで要素３である必要があるから。
 	for(int i = 0, n = 3; i < n; ++i) cog(i,0) = bufCog(i,0);
 
-	//std::cout << "cog\n" << cog << std::endl;
-
 	return true;
 }
 
-bool ArmCoG::GetCoGParam(JointNameT fromType,CoGNameT toType, Eigen::Vector4d &ret){
+bool ArmCoG::GetCoGVecParam(JointNameT fromType,CoGNameT toType,HTM htmObj,Eigen::Vector4d &ret){
 	int typeBuffer = -1;
 
 	if(fromType == SHOULDER){
@@ -118,10 +97,13 @@ bool ArmCoG::GetCoGParam(JointNameT fromType,CoGNameT toType, Eigen::Vector4d &r
 	}
 
 	Eigen::Vector4d lengthParam = Eigen::Vector4d::Zero();
+
+	//std::cout << htmObj.distortion(toType+1) << std::endl;
+	//std::cout << " type buffer\n " << typeBuffer << std::endl;
 	
 	lengthParam(0) = 0.0;
-	lengthParam(1) = -cogLength[typeBuffer] * sin(distortion[toType+1]);
-	lengthParam(2) = cogLength[typeBuffer] * cos(distortion[toType+1]);
+	lengthParam(1) = -cogLength(typeBuffer,0) * sin(htmObj.distortion(toType+1));
+	lengthParam(2) = cogLength(typeBuffer,0) * cos(htmObj.distortion(toType+1));
 	lengthParam(3) = 1.0;
 
 	ret = lengthParam;

@@ -3,28 +3,24 @@
 #define __KINE_COORDS_H__
 
 #include "kine_htm.h"
-#include <vector>
-//#include "kine_config.h"
+#include "kine_defines.h"
+
 
 namespace Trl{
 
-class Coords : private HTM{
+class Coords{
 public:
-	Coords(int maxJoint);
+	Coords();
 	~Coords();
 
 	void InitCoords(Eigen::MatrixXd &curJointRad);
 
-	void GetFinger(PosT &coords);
-	void GetWrist (PosT &coords);
-	void GetElbow (PosT &coords);
+	void GetFinger(HTM htmObj,PosT &coords);
+	void GetWrist (HTM htmObj,PosT &coords);
+	void GetElbow (HTM htmObj,PosT &coords);
 };
 
-Coords::Coords(int maxJoint):HTM(maxJoint){
-	SetArmLength(kArmLength);
-	SetOffsetParam(kOffsetLength);
-	SetAlphaParam(kAlphaRad);
-}
+Coords::Coords(){}
 
 Coords::~Coords(){}
 
@@ -38,19 +34,19 @@ void Coords::InitCoords(JointT &curJointRad){
 // 6 : arm's wrist position
 // 4 : arm's elbow position
 
-void Coords::GetFinger(PosT &coords){
+void Coords::GetFinger(HTM htmObj,PosT &coords){
 	//coords.resize(3);
-	for(int i = 0; i < 3; ++i)coords(i) = htm[7](i,3);
+	for(int i = 0; i < 3; ++i)coords(i) = htm[FINGER+1](i,3);
 }
 
-void Coords::GetWrist(PosT &coords){
+void Coords::GetWrist(HTM htmObj,PosT &coords){
 	//coords.resize(3);
-	for(int i = 0; i < 3; ++i)coords(i) = htm[6](i,3);
+	for(int i = 0; i < 3; ++i)coords(i) = htm[WRIST+1](i,3);
 }
 
-void Coords::GetElbow(PosT &coords){
+void Coords::GetElbow(HTM htmObj,PosT &coords){
 	//coords.resize(3);
-	for(int i = 0; i < 3; ++i)coords(i) = htm[3](i,3);
+	for(int i = 0; i < 3; ++i)coords(i) = htm[ELBOW+1](i,3);
 }
 
 

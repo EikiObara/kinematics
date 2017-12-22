@@ -2,7 +2,6 @@
 // 2017/12/18
 // auther : eiki Obara
 
-
 #ifndef __KINE_ROBOT_PARAM_H__
 #define __KINE_ROBOT_PARAM_H__
 

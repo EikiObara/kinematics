@@ -54,22 +54,9 @@ void CreateHTM(double jointRad, double alphaRad,
 //homogeneous translation matrix
 class HTM{
 private:
-	Eigen::MatrixXd alpha;
-	Eigen::MatrixXd offset;
-	Eigen::MatrixXd armLength;
 
-	int elemNum;
 	int linkNum;
-public:
-	std::vector<Eigen::Matrix4d,Eigen::aligned_allocator<Eigen::Matrix4d>> om;
-	std::vector<Eigen::Matrix4d,Eigen::aligned_allocator<Eigen::Matrix4d>> htm;
-
-	//constractor
-	HTM(int _elemNum);
-	//destractor
-	~HTM();
-
-	int GetElem();
+	int elemNum;
 
 	//wrote in ref book (a_i) pp.27
 	void SetArmLength(Eigen::MatrixXd _armLength);
@@ -78,21 +65,35 @@ public:
 	//wrote in ref book (alpha_i)
 	void SetAlphaParam(Eigen::MatrixXd _alpha);
 
-	//constractor overload
+public:
+	Eigen::MatrixXd offset;
+	Eigen::MatrixXd armLength;
+	Eigen::MatrixXd distortion;
+
+	std::vector<Eigen::Matrix4d,Eigen::aligned_allocator<Eigen::Matrix4d>> om;
+	std::vector<Eigen::Matrix4d,Eigen::aligned_allocator<Eigen::Matrix4d>> htm;
+
+	HTM(int _elemNum);
+
+	void SetLinkParam(Eigen::MatrixXd armLength,
+		Eigen::MatrixXd offset,Eigen::MatrixXd distortion);
+
+	int GetElem();
+
 	void CalcHTM(Eigen::MatrixXd &curJointRad);
 	//同時変換行列の算出
-	void GetHTMAll(void);
+	void GetHTMAll();
 	//start~end区間での同時変換行列を返す
-	void GetHTM(const int start, const int end, Eigen::Matrix4d &ret);
+	void GetHTM(int start,int end,Eigen::Matrix4d &ret);
 };
 
 HTM::HTM(int _elemNum){
-	elemNum = _elemNum;
-	linkNum = _elemNum + 1;
+	this->elemNum = _elemNum;
+	this->linkNum = _elemNum + 1;
 
-	offset = Eigen::MatrixXd::Zero(linkNum,1); 
-	armLength = Eigen::MatrixXd::Zero(linkNum,1); 
-	alpha	= Eigen::MatrixXd::Zero(linkNum,1);
+	offset		= Eigen::MatrixXd::Zero(linkNum,1); 
+	armLength	= Eigen::MatrixXd::Zero(linkNum,1); 
+	distortion	= Eigen::MatrixXd::Zero(linkNum,1);
 
 	om = std::vector<Eigen::Matrix4d,Eigen::aligned_allocator<Eigen::Matrix4d>>(linkNum);
 	htm= std::vector<Eigen::Matrix4d,Eigen::aligned_allocator<Eigen::Matrix4d>>(linkNum);
@@ -100,43 +101,35 @@ HTM::HTM(int _elemNum){
 	for(int i = 0; i < linkNum; ++i)om[i] = Eigen::Matrix4d::Identity();
 }
 
-HTM::~HTM(){}
-
 int HTM::GetElem(){
 	return elemNum;
 }
 
 void HTM::SetArmLength(Eigen::MatrixXd _armLength){
 	armLength = _armLength;
-//	std::cout << armLength << std::endl;
-//	std::cout << "rows" << armLength.rows() << std::endl;
-//	std::cout << "cals" << armLength.cols() << std::endl;
 }
 
 void HTM::SetAlphaParam(Eigen::MatrixXd _alpha){
-	alpha = _alpha;
-//	std::cout << alpha << std::endl;
-//	std::cout << "rows" << alpha.rows() << std::endl;
-//	std::cout << "cals" << alpha.cols() << std::endl;
+	distortion = _alpha;
 }
 
 void HTM::SetOffsetParam(Eigen::MatrixXd _offset){
 	offset = _offset;
-//	std::cout << offset << std::endl;
-//	std::cout << "rows" << offset.rows() << std::endl;
-//	std::cout << "cals" << offset.cols() << std::endl;
 }
 
+void HTM::SetLinkParam(Eigen::MatrixXd armLength,Eigen::MatrixXd offset,Eigen::MatrixXd distortion){
+	SetArmLength(armLength);
+	SetAlphaParam(distortion);
+	SetOffsetParam(offset);
+}
 
 //end effector 分でelemnumが1増える
 void HTM::CalcHTM(Eigen::MatrixXd &curJointRad){
-
 	for(int joint = 0; joint < linkNum; ++joint){
-
 		if(joint != elemNum){
-		CreateHTM(curJointRad(joint),alpha(joint),armLength(joint),offset(joint),om[joint]);
+		CreateHTM(curJointRad(joint),distortion(joint),armLength(joint),offset(joint),om[joint]);
 		}else if(joint == elemNum){
-		CreateHTM(curJointRad(0.0),alpha(joint),armLength(joint),offset(joint),om[joint]);
+		CreateHTM(curJointRad(0.0),distortion(joint),armLength(joint),offset(joint),om[joint]);
 		}
 	}
 
@@ -151,7 +144,7 @@ void HTM::CalcHTM(Eigen::MatrixXd &curJointRad){
 	}
 }
 
-void HTM::GetHTMAll(void){
+void HTM::GetHTMAll(){
 	Eigen::Matrix4d temp = Eigen::Matrix4d::Identity();
 
 	for(int i = 0; i < linkNum; ++i){
@@ -160,7 +153,7 @@ void HTM::GetHTMAll(void){
 	}
 }
 
-void HTM::GetHTM(const int start, const int end, Eigen::Matrix4d &ret){
+void HTM::GetHTM(int start,int end,Eigen::Matrix4d &ret){
 	Eigen::Matrix4d temp = Eigen::Matrix4d::Identity();
 
 	for(int joint = start; joint <= end; ++joint){

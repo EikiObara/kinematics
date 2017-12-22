@@ -33,6 +33,7 @@ enum JointNameT{
 	SHOULDER = 0,	//depend to consentration point of robot arm link.
 	ELBOW = 2,
 	WRIST = 5,
+	FINGER = 6	//ちょっと横着してます。FINGERは７なんだけど。Coordsで使うのに都合よくて
 };
 
 enum CoGNameT{
