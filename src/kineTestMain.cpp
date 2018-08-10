@@ -1,377 +1,124 @@
 #include <iostream>
 #include <string>
+#include <algorithm>
 
 #include "Eigen/Core"
 #include "Eigen/Geometry"
-
 #include "loggerTrl.h"
 
-//#include "kinematics.h"
-
-//合格
-#include "kine_coords.h"
-#include "trapeIntrpl.h"
-#include "kine_cherryCoords.h"
-#include "kine_handPosture.h"
-#include "kine_handVelocity.h"
-#include "kine_htm.h"
-
 //検定中
-#include "kine_velocityGenerator.h"
-
 #include "kine_basicMotion.h"
-#include "kine_selfMotion.h"
+#include "kine_coords.h"
 #include "kine_config.h"
+#include "torque.h"
+#include "translator.h"
+#include "myAlgorithm.h"
 
+const double gravityAcceleration = 9.80665;
 
-void SetCurJointRad(Eigen::MatrixXd &curJointRad){
-	curJointRad(0,0) = 50 * M_PI / 180 - M_PI / 2;
-	curJointRad(1,0) = 0 * M_PI / 180 + M_PI / 2;
-	curJointRad(2,0) = 0 * M_PI / 180 + M_PI / 2;
-	curJointRad(3,0) = 90 * M_PI / 180;
-	curJointRad(4,0) = 0 * M_PI / 180;
-	curJointRad(5,0) = -50 * M_PI / 180;
-	curJointRad(6,0) = 0 * M_PI / 180;
+Eigen::MatrixXd SetCurJointRad(){
+	Eigen::MatrixXd curJointRad(Trl::kMaxJoint,1);
+	curJointRad(0,0) = DegToRad(0);				//DegToRad(***here***)←変更する（degree値）
+	curJointRad(1,0) = DegToRad(-90);			//pose 1
+	curJointRad(2,0) = DegToRad(-36.87);		//
+	curJointRad(3,0) = DegToRad(0);				//
+	curJointRad(4,0) = DegToRad(36.87);			//
+	curJointRad(5,0) = DegToRad(0);				//
+
+//	curJointRad(0,0) = DegToRad(0);				//
+//	curJointRad(1,0) = DegToRad(-66.4218);		//pose 2
+//	curJointRad(2,0) = DegToRad(44.15635);		//
+//	curJointRad(3,0) = DegToRad(0);				//
+//	curJointRad(4,0) = DegToRad(-66.4218);		//
+//	curJointRad(5,0) = DegToRad(0);				//
+
+//	curJointRad(0,0) = DegToRad(0);				//
+//	curJointRad(1,0) = DegToRad(-100.55);		//pose 3
+//	curJointRad(2,0) = DegToRad(90-68.8998);		//
+//	curJointRad(3,0) = DegToRad(0);				//
+//	curJointRad(4,0) = DegToRad(-10.55);		//
+//	curJointRad(5,0) = DegToRad(0);				//
+
+	return curJointRad;
 }
 
-void SetCurJointRad(std::vector<double> &curJointRad){
-	curJointRad[0] = 50 * M_PI / 180 - M_PI / 2;
-	curJointRad[1] = 0 * M_PI / 180 + M_PI / 2;
-	curJointRad[2] = 0 * M_PI / 180 + M_PI / 2;
-	curJointRad[3] = 90 * M_PI / 180;
-	curJointRad[4] = 0 * M_PI / 180;
-	curJointRad[5] = -50 * M_PI / 180;
-	curJointRad[6] = 0 * M_PI / 180;
+Eigen::MatrixXd SetMassForHand(){
+	Eigen::MatrixXd handForce(6,1);
+	handForce(0,0) = 0.0;		//x方向の力
+	handForce(1,0) = 0.0;			//y方向の力
+	handForce(2,0) = 30.45 - 2.0 * gravityAcceleration;	//z方向の力(上が正)
+	handForce(3,0) = 0.0;							
+	handForce(4,0) = 0.0;							
+	handForce(5,0) = 0.0;
+	return handForce;
 }
 
-void SetHandVel(Eigen::MatrixXd &handVel){
-	handVel(0,0) = 10.0;
-	handVel(1,0) = 0.0;
-	handVel(2,0) = 0.0;
-	handVel(3,0) = 0.0;
-	handVel(4,0) = 0.0;
-	handVel(5,0) = 0.0;
+Eigen::MatrixXd SetTension(){
+	Eigen::MatrixXd vec(7,1);
+	vec(0,0) = 0.0;			//torque1
+	vec(1,0) = 0.0;			//T1
+	vec(2,0) = 0.0;			//T2
+	vec(3,0) = 0.0;			//T3
+	vec(4,0) = 0.0;			//T4
+	vec(5,0) = 0.0;			//T5
+	vec(6,0) = 0.0;			//T6
+	return vec;
 }
 
-static const double TIME_LENGTH	= 1.0;
-static const double TIME_SPAN	= 0.01;
-
-//int main(void){
-//	Trl::Logger lg("interface");
-//	Trl::Coords armCoord(7);
-//	Trl::IKCalculator ikc(7);
-//
-//	std::vector<double> xyz(3,0);
-//	std::vector<double> curJ(7,0);
-//
-//	SetCurJointRad(curJ);
-//
-//	armCoord.InitCoords(curJ);
-//	armCoord.GetFinger(xyz);
-//	for(int i = 0; i < (int)xyz.size(); ++i) std::cout << i << " " << xyz[i] << std::endl;
-//
-//	//軌道点の設定
-//	std::vector<double> viaPoint={xyz[0]-10,xyz[1],xyz[2]};//linearだと設定しても使われない
-//	std::vector<double> endPoint={xyz[0],xyz[1],xyz[2]};
-//
-//	//ハンド姿勢の設定/////////////////////////////////////////////////
-////	Trl::CherryCoords tc;
-////	for(int i = 0; i < 3; ++i){ tc.middle(i,0) = endPoint[i];}
-////	tc.top		= {tc.middle[0] + 10,	tc.middle[1] + 10,	tc.middle[2] + 10};
-////	tc.bottom	= {tc.middle[0] + 10,	tc.middle[1] - 10,	tc.middle[2] + 10};
-////	
-//	std::vector<double> rpy(3,0);
-//
-//	rpy[0] = 0 * M_PI / 180;
-//	rpy[1] = 0 * M_PI / 180;
-//	rpy[2] = 30 * M_PI / 180;
-/////////////////////////////////////////////////////////////////////////////
-//
-////////////IKの設定//////////////////////////////////////////////////////////
-//	ikc.SetIKParam(Trl::basic, Trl::splineHand);
-//	ikc.SetTimeParam(TIME_LENGTH,TIME_SPAN);
-//	ikc.SetPathCoords(xyz,endPoint,viaPoint);
-//	//ikc.SetPathCoords(xyz,endPoint);
-//	//ikc.SetPostureParam(curJ,tc);
-//	ikc.SetPostureParam(curJ,rpy);
-//////////////////////////////////////////////////////////////////////////////
-//
-//	//返り値をもらう準備とか
-//	std::vector<double> angleV(7,0);
-//	//double trape = 0.0;
-//
-//	for(double i = 0; i <= TIME_LENGTH; i += TIME_SPAN){
-//		//trape = TrapeInterpolate(M_PI/2, TIME_LENGTH, TIME_SPAN,i);
-//	
-//		//if(ikc.Run(curJ, i, angleV, trape)==false){
-//		if(ikc.Run(curJ, i, angleV)==false){
-//			std::cout << " program failed " << std::endl;
-//		}
-//
-//		//ikc.Run(curJ, i, angleV, TIME_SPAN*M_PI);
-//		lg.SetData(angleV,7);
-//
-//		for(int joint = 0; joint < 7; ++joint){
-//			curJ[joint] += angleV[joint];
-//		}
-//	}
-//
-//	armCoord.InitCoords(curJ);
-//	armCoord.GetFinger(xyz);
-//
-//	for(int i = 0; i < (int)xyz.size(); ++i) std::cout << i << " " << xyz[i] << std::endl;
-//
-//	lg.Write();
-//
-//	return 0;
-//}
-
-////trajectory test
-//int main(void){
-//	Trl::Logger lg("trajection");
-//
-//	Trl::Trajectory tr;
-//
-//	Trl::CherryCoords tc;
-//
-//	Eigen::Vector3d start;
-//	Eigen::Vector3d via;
-//	Eigen::Vector3d end;
-//
-//	start << 1,2,3;
-//	via << 2,4,6;
-//	end << 3,6,9;
-//
-//	tr.SetStart(start);
-//	tr.SetVia(via);
-//	tr.SetEnd(end);
-//
-//	tr.SetTimeParam(TIME_LENGTH, TIME_SPAN);
-//
-//	tr.GeneratePath();
-//
-//	Eigen::Vector3d ret = Eigen::Vector3d::Zero();
-//
-//	for(double i = 0; i < TIME_LENGTH; i+=TIME_SPAN){
-//		tr.RunSpline(i,ret);
-//		lg.SetData(ret);
-//	}
-//
-//	lg.Write();
-//}
-
-//self motion test
-//int main(void){
-//	Trl::Logger lg("basicMotion");
-//
-//	Trl::SelfMotion bm(7);
-//
-//	Eigen::MatrixXd jr(7,1);
-//	Eigen::MatrixXd vel(7,1);
-//	Eigen::MatrixXd ret(7,1);
-//
-//	SetCurJointRad(jr);
-//	SetHandVel(vel);
-//
-//	bm.Init(jr);
-//
-//	if(bm.Run(vel,ret)){
-//		std::cout << ret << std::endl;
-//		lg.SetData(ret);
-//	}
-//
-//	lg.Write();
-//
-//	return 0;
-//}
-
-//basic motion test
-//int main(void){
-//	Trl::Logger lg("basicMotion");
-//
-//	Trl::BasicMotion bm(7);
-//
-//	Eigen::MatrixXd jr(7,1);
-//	Eigen::MatrixXd vel(7,1);
-//	Eigen::MatrixXd ret(7,1);
-//
-//	SetCurJointRad(jr);
-//	SetHandVel(vel);
-//
-//
-//	if(bm.Run(jr,vel,ret)){
-//		std::cout << ret << std::endl;
-//		lg.SetData(ret);
-//	}
-//
-//
-//	lg.Write();
-//
-//	return 0;
-//}
-
-//int main(void){
-//	Trl::Logger hmrd("vel");
-//	Trl::Logger s("integlar");
-//
-//	Eigen::MatrixXd jr = Eigen::MatrixXd(7,1);
-//
-//	Trl::HandMotion hm(7);
-//
-//	Trl::CherryCoords tc;
-//	tc.top		= {565 + 10,	-18+10,	10};
-//	tc.middle	= {565,		-18,	0};
-//	tc.bottom	= {565 + 10,	-18-10,	-10};
-//
-////	std::vector<double> rpy(3,0);
-////	rpy[0] = 0 * M_PI / 180;
-////	rpy[1] = 0 * M_PI / 180;
-////	rpy[2] = 60 * M_PI / 180;
-//
-//	SetCurJointRad(jr);
-//
-//	hm.SetTimeParam(TIME_LENGTH,TIME_SPAN);
-//
-//	hm.SetJointRad(jr);
-//
-//	hm.SetEndPosture(tc);
-//
-//	Eigen::Vector3d returnV = Eigen::Vector3d::Zero();
-//
-//	Eigen::Vector3d stack = Eigen::Vector3d::Zero();
-//
-//	for(double i = 0; i < 1; i += 0.01){
-//		if(hm.Run(i,returnV) == true){
-//			stack += returnV;
-//			hmrd.SetData(returnV);
-//			s.SetData(stack);
-//		}
-//	}
-//	
-//	hmrd.Write();
-//	s.Write();
-//
-//	return 0;
-//}
-
-
-//int main(){
-//	Eigen::Quaterniond s;
-//	Eigen::Quaterniond e;
-//
-//	Trl::Logger lg("quaternion");
-//
-//	Eigen::MatrixXd jr = Eigen::MatrixXd(7,1);
-//	SetCurJointRad(jr);
-//
-//	s = Trl::StartPosture(jr);
-//
-//	Trl::CherryCoords tc;
-//	tc.top		= {10,	10,	0};
-//	tc.middle	= {10,	0,	0};
-//	tc.bottom	= {10,	-10,	0};
-//
-//	Eigen::Vector3d rpy;
-//	rpy(0) = 0 * M_PI / 180;
-//	rpy(1) = 0 * M_PI / 180;
-//	rpy(2) = 10 * M_PI / 180;
-//
-//	e = Trl::EndPosture(rpy,jr);
-//	//e = Trl::EndPosture(tc);
-//
-//	Trl::HandVelocity hv;
-//
-//	hv.SetTimeParam(TIME_LENGTH,TIME_SPAN);
-//
-//	hv.SetStart(s);
-//	hv.SetEnd(e);
-//
-//	for(double i = 0; i < TIME_LENGTH; i += TIME_SPAN){
-//		Eigen::Vector3d ret;
-//
-//		hv.Run(i,ret);
-//
-//		lg.SetData(ret);
-//		
-//	}
-//
-//	lg.Write();
-//
-//	return 0;
-//}
-
-//int main(void){
-//	Trl::VelGenerator hg(7);
-//	HandPathT hp;
-//
-//	Trl::Logger lg("velGene");
-//	
-//	// current joint
-//	Eigen::MatrixXd jr = Eigen::MatrixXd(7,1);
-//	SetCurJointRad(jr);
-//
-//	// target
-//	Eigen::Vector3d target;
-//
-//	target(0) = 565;
-//	target(1) = -18;
-//	target(2) = 0;
-//	
-//	// via
-//	Eigen::Vector3d via;
-//
-//	via(0) = 565;
-//	via(1) = -20;
-//	via(2) = 0;
-//
-//
-//	// rpy value
-//	Eigen::Vector3d rpy;
-//	rpy(0) = 0 * M_PI / 180;
-//	rpy(1) = 0 * M_PI / 180;
-//	rpy(2) = 10 * M_PI / 180;
-//
-//	Trl::CherryCoords tc;
-//	tc.top		= {10,	10,	10};
-//	tc.middle	= {10,	0,	0};
-//	tc.bottom	= {10,	-10,	-10};
-//
-//	hg.Straight(jr,target,Trl::EndPosture(rpy,jr),1.0,0.01,hp);
-//	//hg.Spline(jr,target,via,Trl::EndPosture(tc),1.0,0.01,hp);
-//
-//	//std::cout << hp << std::endl;
-//
-//	lg.SetData(hp);
-//
-//	lg.Write();
-//
-//}
-
-int main(void){
-
-	Trl::Coords cd(7);
-	Eigen::Vector3d fing;
-
-
-	Trl::HTM obj(7);
-	Eigen::MatrixXd jr = Eigen::MatrixXd(7,1);
-	SetCurJointRad(jr);
-
-	cd.InitCoords(jr);
-
-	cd.GetFinger(fing);
-
-	std::cout << fing << std::endl;
-
-	obj.SetArmLength(Trl::kALength);
-	obj.SetOffsetParam(Trl::kDLength);
-	obj.SetAlphaParam(Trl::kAlphaRad);
-
-	obj.CalcHTM(jr);
-
-	obj.GetHTMAll();
-
-	for(int i = 0; i < 8; ++i){
-		std::cout << obj.om[i] << std::endl;
-	}
+Eigen::MatrixXd SetNullSpace(){
+	Eigen::MatrixXd vec(7,1);
+	vec(0,0) = 0.0;
+	vec(1,0) = 8.0;
+	vec(2,0) = 4.0;
+	vec(3,0) = 1.0;
+	vec(4,0) = 1.0;
+	vec(5,0) = 1.0;
+	vec(6,0) = 1.0;
+	return vec;
 }
+
+int main(){
+	Eigen::MatrixXd jr = SetCurJointRad();
+	Eigen::MatrixXd ret(Trl::kMaxJoint,1);
+
+	Trl::BasicMotion bm(Trl::kMaxJoint,Trl::kALength,Trl::kDLength,Trl::kAlphaRad);
+	Trl::Coords coord(Trl::kMaxJoint,Trl::kALength,Trl::kDLength, Trl::kAlphaRad);
+
+	std::cout << "elbow Position\n" << coord.GetElbow(jr) << std::endl;
+	std::cout << "wrist position\n" << coord.GetWrist(jr) << std::endl;
+	std::cout << "finger position\n" << coord.GetFinger(jr) << std::endl;
+
+	Eigen::MatrixXd jacob = bm.GetJacobian(jr);
+	Eigen::MatrixXd iJacob = bm.GetInverseJacobian(jr);
+	Eigen::MatrixXd force = SetMassForHand();
+	Eigen::MatrixXd pulleyMat = GetPulleyMatrix();
+	Eigen::MatrixXd invPulleyMat = GetPseudoMatrix(pulleyMat);
+	Eigen::MatrixXd nullVec = SetNullSpace();
+	Eigen::MatrixXd originTorque = invPulleyMat * jacob.transpose() * force;
+	unsigned int minimum = FindMinimum(originTorque, nullVec);
+	Eigen::MatrixXd interpolateVec = -nullVec * (originTorque(minimum,0) / nullVec(minimum,0)) * 1.0;
+	Eigen::MatrixXd adjustedTorque = originTorque + interpolateVec;
+	Eigen::MatrixXd handForceRef = jacob.transpose().inverse() * pulleyMat * (originTorque + interpolateVec);
+ 
+
+
+	std::cout << "jacobian\n" << jacob << std::endl;
+	std::cout << "inverse jacobian\n" << iJacob << std::endl;
+
+//	std::cout << "pulley Matrix\n" << pulleyMat << std::endl;
+//	std::cout << "pseudo inverse pulley Matrix\n" << invPulleyMat<< std::endl;
+//	std::cout << "null space" << nullSpace << std::endl;
+//	std::cout << "null space vector" << nullSpace * vec << std::endl;
+
+	std::cout << "origin tension\n" << originTorque << std::endl;
+
+	std::cout << "adjusted tension\n" << adjustedTorque << std::endl;
+
+	std::cout << "origin torque\n" << pulleyMat * (originTorque) << std::endl;
+
+	std::cout << "force\n" << handForceRef << std::endl;
+
+	
+		return 0;
+}
+
