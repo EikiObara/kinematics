@@ -16,12 +16,14 @@ private:
 	void CalcJacob(void);
 	bool CalcIJacob(void);
 public:
-	SelfMotion(int maxJoint);
+	SelfMotion(int maxJoint,Eigen::MatrixXd aLength, Eigen::MatrixXd dLength, Eigen::MatrixXd alpha);
 	bool Run(Eigen::MatrixXd &curJointRad,Eigen::MatrixXd &handVel,Eigen::MatrixXd &ret);
 
 };
 
-SelfMotion::SelfMotion(int maxJoint) : Motion(maxJoint){}
+SelfMotion::SelfMotion(int maxJoint,Eigen::MatrixXd aLength, Eigen::MatrixXd dLength, Eigen::MatrixXd alpha) :
+	Motion(maxJoint, aLength, dLength, alpha)
+{}
 
 void SelfMotion::CalcJacob(void){
 

@@ -12,19 +12,36 @@ private:
 	Eigen::MatrixXd jacob;
 	Eigen::MatrixXd iJacob;
 
-	virtual void CalcJacob(void);
-	virtual bool CalcIJacob(void);
+	const int maxJoint;
+	int jacobSize;
+
+	virtual void CalcJacob();
+	virtual bool CalcIJacob();
 public:
-	BasicMotion(int maxJoint);
+	BasicMotion(int maxJoint,Eigen::MatrixXd aLength, Eigen::MatrixXd dLength, Eigen::MatrixXd alpha);
+	Eigen::MatrixXd GetJacobian(Eigen::MatrixXd &jointRad);
+	Eigen::MatrixXd GetInverseJacobian(Eigen::MatrixXd &jointRad);
 	virtual bool Run(Eigen::MatrixXd &curJointRad,Eigen::MatrixXd &handVel,Eigen::MatrixXd &ret);
-	
 };
 
-BasicMotion::BasicMotion(int maxJoint) : Motion(maxJoint){}
+BasicMotion::BasicMotion(int maxJoint,Eigen::MatrixXd aLength, Eigen::MatrixXd dLength, Eigen::MatrixXd alpha) :
+	Motion(maxJoint, aLength, dLength, alpha),
+	maxJoint(maxJoint),
+	jacobSize(maxJoint),
+	jacob(Eigen::MatrixXd(maxJoint,maxJoint)),
+	iJacob(Eigen::MatrixXd(maxJoint,maxJoint))
+{
+	if(maxJoint > 6){
+		jacob.resize(6,maxJoint);
+		iJacob.resize(maxJoint,6);
+		jacobSize = 6;
+	}
+}
 
-void BasicMotion::CalcJacob(void){
+void BasicMotion::CalcJacob(){
 	for(int joint = 0; joint < htmObj.GetElem(); ++joint){
 		Eigen::Vector3d posVec = Eigen::Vector3d::Zero();
+
 		for(int i = 0; i < 3; ++i){
 			posVec(i) = htmObj.htm[htmObj.GetElem()](i,3) - htmObj.htm[joint](i,3);
 		}
@@ -61,14 +78,13 @@ bool BasicMotion::CalcIJacob(void){
 		return false;
 	}
 
-	Eigen::Matrix<double,6,6> diagonal = Eigen::Matrix<double,6,6>::Zero();
-
+	Eigen::MatrixXd diagonal(jacobSize,jacobSize);
 	diagonal = jacob * jacob.transpose();
 
-	if(fabs(diagonal.determinant()) < kCompareZero)return false;
+	if(fabs(diagonal.determinant()) < kCompareZero)	return false;
 
-	Eigen::Matrix<double,6,6> iden = Eigen::Matrix<double,6,6>::Identity();
-	Eigen::Matrix<double,6,6> inverseDiago = Eigen::Matrix<double,6,6>::Zero();
+	Eigen::MatrixXd iden(jacobSize,jacobSize);
+	Eigen::MatrixXd inverseDiago(jacobSize,jacobSize);
 
 	inverseDiago = diagonal.partialPivLu().solve(iden);
 
@@ -78,28 +94,39 @@ bool BasicMotion::CalcIJacob(void){
 }
 
 bool BasicMotion::Run(Eigen::MatrixXd &curJointRad,Eigen::MatrixXd &handVel,Eigen::MatrixXd &ret){
-	jacob	= Eigen::MatrixXd(6,7);
-	iJacob	= Eigen::MatrixXd(7,6);
-
 	htmObj.CalcHTM(curJointRad);
+	htmObj.DispOM();
+
 	htmObj.GetHTMAll();
+	htmObj.DispHTM();
 
 	CalcJacob();
 
 	//std::cout << "jacob" << std::endl;
 	//std::cout << jacob << std::endl;
 
-	if(CalcIJacob() == false){
-		return false;
-	}
+	if(CalcIJacob() == false)	return false;
 
-	Eigen::Matrix<double,6,1> buf = Eigen::Matrix<double,6,1>::Zero();
-
-	for(int i = 0; i < 6; ++i) buf(i) = handVel(i);
-
-	ret = iJacob * buf;
+	ret = iJacob * handVel;
 
 	return true;
+}
+
+Eigen::MatrixXd BasicMotion::GetJacobian(Eigen::MatrixXd &jointRad){
+	htmObj.CalcHTM(jointRad);
+	htmObj.GetHTMAll();
+	//htmObj.DispOM();
+	//htmObj.DispHTM();
+	CalcJacob();
+	return jacob;
+}
+
+Eigen::MatrixXd BasicMotion::GetInverseJacobian(Eigen::MatrixXd &jointRad){
+	htmObj.CalcHTM(jointRad);
+	htmObj.GetHTMAll();
+	CalcJacob();
+	if(!CalcIJacob())	std::cout << "cannot create inverse matrix" << std::endl;
+	return iJacob;
 }
 
 }	//namespace Trl

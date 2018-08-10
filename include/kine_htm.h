@@ -15,11 +15,6 @@ const double kCompareZero = 1.0e-06;
 
 namespace Trl{
 
-//static const double kBaseArmLength	= 164.0;
-//static const double kUpperArmLength	= 322.0;
-//static const double kForeArmLength	= 257.0;
-//static const double kHandArmLength	= 154.0;
-
 //homogeneous translation matrix
 class HTM{
 private:
@@ -52,6 +47,9 @@ public:
 	void GetHTMAll(void);
 	//start~end区間での同時変換行列を返す
 	void GetHTM(const int start, const int end, Eigen::Matrix4d &ret);
+
+	void DispHTM();
+	void DispOM();
 };
 
 HTM::HTM(int _elemNum){
@@ -67,6 +65,7 @@ HTM::HTM(int _elemNum){
 
 	for(int i = 0; i < _elemNum+1; ++i){
 		om[i] = Eigen::Matrix4d::Identity();
+		htm[i] = Eigen::Matrix4d::Identity();
 	}
 }
 
@@ -77,8 +76,8 @@ int HTM::GetElem(){
 	return elemNum;
 }
 
-void HTM::SetArmLength(Eigen::MatrixXd _dLength){
-	dLength = _dLength;
+void HTM::SetArmLength(Eigen::MatrixXd _aLength){
+	aLength = _aLength;
 	//for(int i = 0; i < _aLength.size(); ++i)std::cout << aLength(i,0) << std::endl;
 }
 
@@ -88,7 +87,7 @@ void HTM::SetAlphaParam(Eigen::MatrixXd _alpha){
 }
 
 void HTM::SetOffsetParam(Eigen::MatrixXd _offset){
-	aLength = _offset;
+	dLength = _offset;
 	//for(int i = 0; i < _offset.size(); ++i)	std::cout << dLength(i,0) << std::endl;
 }
 
@@ -97,12 +96,12 @@ void HTM::CalcHTM(Eigen::MatrixXd &curJointRad){
 	for(int joint = 0; joint < elemNum+1; ++joint){
 		double cos_t, sin_t, cos_a, sin_a;
 
-		if(joint != 7){
+		if(joint != elemNum){
 			cos_t = cos(curJointRad(joint));
 			sin_t = sin(curJointRad(joint));
 			cos_a = cos(alpha(joint));
 			sin_a = sin(alpha(joint));
-		}else if(joint == 7){
+		}else if(joint == elemNum){
 			cos_t = cos(0.0);
 			sin_t = sin(0.0);
 			cos_a = cos(0.0);
@@ -158,6 +157,22 @@ void HTM::GetHTM(const int start, const int end, Eigen::Matrix4d &ret){
 	}
 
 	ret = temp;
+}
+
+void HTM::DispHTM(){
+	std::cout << "********display htm********" << std::endl;
+	for(unsigned int itr = 0; itr < htm.size(); ++itr){
+		std::cout << htm[itr] << std::endl;
+		std::cout << std::endl;
+	}
+}
+
+void HTM::DispOM(){
+	std::cout << "********display om********" << std::endl;
+	for(unsigned int itr = 0; itr < om.size(); ++itr){
+		std::cout << om[itr] << std::endl;
+		std::cout << std::endl;
+	}
 }
 
 }	//namespace Trl

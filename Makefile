@@ -16,7 +16,8 @@ ifeq "$(strip $(BIN_DIR))" ""
 endif
 
 COMPILER  = g++
-CXXFLAGS    = -MMD -MP -Wall -Wextra -O0 -std=c++11
+#CXXFLAGS    = -MMD -MP -Wall -Wextra -O0 -std=c++11
+CXXFLAGS    = -MMD -MP -Wextra -O0 -std=c++11
 LDFLAGS   = -lpthread -lEposCmd
 
 TARGET    = $(BIN_DIR)/$(shell basename `readlink -f .`)

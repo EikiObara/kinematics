@@ -11,6 +11,10 @@ obj/kineTestMain.o: src/kineTestMain.cpp include/Eigen/Core \
  include/Eigen/src/Core/MathFunctions.h \
  include/Eigen/src/Core/GenericPacketMath.h \
  include/Eigen/src/Core/MathFunctionsImpl.h \
+ include/Eigen/src/Core/arch/SSE/PacketMath.h \
+ include/Eigen/src/Core/arch/SSE/MathFunctions.h \
+ include/Eigen/src/Core/arch/SSE/Complex.h \
+ include/Eigen/src/Core/arch/SSE/TypeCasting.h \
  include/Eigen/src/Core/arch/CUDA/Half.h \
  include/Eigen/src/Core/arch/CUDA/PacketMathHalf.h \
  include/Eigen/src/Core/arch/CUDA/TypeCasting.h \
@@ -104,6 +108,7 @@ obj/kineTestMain.o: src/kineTestMain.cpp include/Eigen/Core \
  include/Eigen/src/misc/Kernel.h include/Eigen/src/misc/Image.h \
  include/Eigen/src/LU/FullPivLU.h include/Eigen/src/LU/PartialPivLU.h \
  include/Eigen/src/LU/Determinant.h include/Eigen/src/LU/InverseImpl.h \
+ include/Eigen/src/LU/arch/Inverse_SSE.h \
  include/Eigen/src/Geometry/OrthoMethods.h \
  include/Eigen/src/Geometry/EulerAngles.h \
  include/Eigen/src/Geometry/Homogeneous.h \
@@ -117,18 +122,14 @@ obj/kineTestMain.o: src/kineTestMain.cpp include/Eigen/Core \
  include/Eigen/src/Geometry/Hyperplane.h \
  include/Eigen/src/Geometry/ParametrizedLine.h \
  include/Eigen/src/Geometry/AlignedBox.h \
- include/Eigen/src/Geometry/Umeyama.h include/loggerTrl.h \
- include/Eigen/Core include/kine_coords.h include/kine_htm.h \
- include/Eigen/Geometry include/Eigen/StdVector \
+ include/Eigen/src/Geometry/Umeyama.h \
+ include/Eigen/src/Geometry/arch/Geometry_SSE.h include/loggerTrl.h \
+ include/Eigen/Core include/kine_basicMotion.h include/kine_motion.h \
+ include/kine_htm.h include/Eigen/Geometry include/Eigen/StdVector \
  include/Eigen/src/StlSupport/StdVector.h \
- include/Eigen/src/StlSupport/details.h include/kine_config.h \
- include/trapeIntrpl.h include/kine_cherryCoords.h \
- include/kine_handPosture.h include/kine_cherryCoords.h \
- include/kine_convertor.h include/kine_handVelocity.h include/kine_htm.h \
- include/kine_velocityGenerator.h include/kine_coords.h \
- include/kine_trajectory.h include/kine_spline.h \
- include/kine_handVelocity.h include/kine_basicMotion.h \
- include/kine_motion.h include/kine_selfMotion.h include/kine_config.h
+ include/Eigen/src/StlSupport/details.h include/kine_coords.h \
+ include/kine_config.h include/kine_config.h include/torque.h \
+ include/translator.h include/myAlgorithm.h
 
 include/Eigen/Core:
 
@@ -157,6 +158,14 @@ include/Eigen/src/Core/MathFunctions.h:
 include/Eigen/src/Core/GenericPacketMath.h:
 
 include/Eigen/src/Core/MathFunctionsImpl.h:
+
+include/Eigen/src/Core/arch/SSE/PacketMath.h:
+
+include/Eigen/src/Core/arch/SSE/MathFunctions.h:
+
+include/Eigen/src/Core/arch/SSE/Complex.h:
+
+include/Eigen/src/Core/arch/SSE/TypeCasting.h:
 
 include/Eigen/src/Core/arch/CUDA/Half.h:
 
@@ -404,6 +413,8 @@ include/Eigen/src/LU/Determinant.h:
 
 include/Eigen/src/LU/InverseImpl.h:
 
+include/Eigen/src/LU/arch/Inverse_SSE.h:
+
 include/Eigen/src/Geometry/OrthoMethods.h:
 
 include/Eigen/src/Geometry/EulerAngles.h:
@@ -432,11 +443,15 @@ include/Eigen/src/Geometry/AlignedBox.h:
 
 include/Eigen/src/Geometry/Umeyama.h:
 
+include/Eigen/src/Geometry/arch/Geometry_SSE.h:
+
 include/loggerTrl.h:
 
 include/Eigen/Core:
 
-include/kine_coords.h:
+include/kine_basicMotion.h:
+
+include/kine_motion.h:
 
 include/kine_htm.h:
 
@@ -448,36 +463,14 @@ include/Eigen/src/StlSupport/StdVector.h:
 
 include/Eigen/src/StlSupport/details.h:
 
-include/kine_config.h:
-
-include/trapeIntrpl.h:
-
-include/kine_cherryCoords.h:
-
-include/kine_handPosture.h:
-
-include/kine_cherryCoords.h:
-
-include/kine_convertor.h:
-
-include/kine_handVelocity.h:
-
-include/kine_htm.h:
-
-include/kine_velocityGenerator.h:
-
 include/kine_coords.h:
 
-include/kine_trajectory.h:
-
-include/kine_spline.h:
-
-include/kine_handVelocity.h:
-
-include/kine_basicMotion.h:
-
-include/kine_motion.h:
-
-include/kine_selfMotion.h:
+include/kine_config.h:
 
 include/kine_config.h:
+
+include/torque.h:
+
+include/translator.h:
+
+include/myAlgorithm.h:

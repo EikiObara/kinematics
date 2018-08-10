@@ -5,7 +5,6 @@
 #define __KINE_MOTION_H__
 
 #include "kine_htm.h"
-#include "kine_config.h"
 
 namespace Trl{
 
@@ -16,15 +15,14 @@ protected:
 	virtual void CalcJacob(void) = 0;
 	virtual bool CalcIJacob(void) = 0;
 public:
-	Motion(int jointNum);
-
+	Motion(int jointNum,Eigen::MatrixXd aLength,Eigen::MatrixXd dLegnth,Eigen::MatrixXd alpha);
 	virtual bool Run(Eigen::MatrixXd &curJointRad,Eigen::MatrixXd &handVel, Eigen::MatrixXd &ret) = 0;
 };
 
-Motion::Motion(int jointNum):htmObj(jointNum){
-	htmObj.SetArmLength(kALength);
-	htmObj.SetOffsetParam(kDLength);
-	htmObj.SetAlphaParam(kAlphaRad);
+Motion::Motion(int jointNum,Eigen::MatrixXd aLength,Eigen::MatrixXd dLength,Eigen::MatrixXd alpha):htmObj(jointNum){
+	htmObj.SetArmLength(aLength);
+	htmObj.SetOffsetParam(dLength);
+	htmObj.SetAlphaParam(alpha);
 }
 
 }	//namespace Trl
