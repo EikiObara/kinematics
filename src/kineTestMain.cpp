@@ -105,8 +105,8 @@ int main(){
 	std::cout << "jacobian\n" << jacob << std::endl;
 	std::cout << "inverse jacobian\n" << iJacob << std::endl;
 
-//	std::cout << "pulley Matrix\n" << pulleyMat << std::endl;
-//	std::cout << "pseudo inverse pulley Matrix\n" << invPulleyMat<< std::endl;
+	std::cout << "pulley Matrix\n" << pulleyMat << std::endl;
+	std::cout << "pseudo inverse pulley Matrix\n" << invPulleyMat<< std::endl;
 //	std::cout << "null space" << nullSpace << std::endl;
 //	std::cout << "null space vector" << nullSpace * vec << std::endl;
 
